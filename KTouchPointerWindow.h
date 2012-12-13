@@ -13,4 +13,13 @@
  *      ...
  * }
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void KTouchPointerWindowInstall();
+
+#ifdef __cplusplus
+}
+#endif
