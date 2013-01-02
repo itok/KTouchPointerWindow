@@ -11,9 +11,9 @@
 #import <QuartzCore/QuartzCore.h>
 
 // Settings for touch pointer
-#define POINTER_FADEOUT_TIME (1)		// second
-#define POINTER_RED (0)					// 0-1
-#define POINTER_GREEN (1)
+#define POINTER_FADEOUT_TIME (0.5)		// second
+#define POINTER_RED (1)					// 0-1
+#define POINTER_GREEN (0)
 #define POINTER_BLUE (0)
 #define POINTER_ALPHA (0.6f)			// 0-1
 #define POINTER_RADIUS (15)
@@ -155,8 +155,10 @@ static char s_key;
 
 -(void) touchesCancelled:(NSSet *)_touches withEvent:(UIEvent *)event
 {
-	for (UITouch *touch in _touches) {
-		[self drawFadeoutTouchPointer:[touch locationInView:self]];
+	if (POINTER_FADEOUT_TIME > 0) {
+		for (UITouch *touch in _touches) {
+			[self drawFadeoutTouchPointer:[touch locationInView:self]];
+		}
 	}
 
 	self.touches = nil;
@@ -165,10 +167,12 @@ static char s_key;
 
 -(void) touchesEnded:(NSSet *)_touches withEvent:(UIEvent *)event
 {
-	for (UITouch *touch in _touches) {
-		[self drawFadeoutTouchPointer:[touch locationInView:self]];
+	if (POINTER_FADEOUT_TIME > 0) {
+		for (UITouch *touch in _touches) {
+			[self drawFadeoutTouchPointer:[touch locationInView:self]];
+		}
 	}
-
+	
 	self.touches = nil;
 	[self setNeedsDisplay];
 }
