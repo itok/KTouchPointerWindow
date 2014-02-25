@@ -17,8 +17,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+	
+#import <UIKit/UIKit.h>
 
 void KTouchPointerWindowInstall();
+void KTouchPointerWindowInstallWithOptions(UIColor* color, CGFloat radius, NSTimeInterval fadeout);
 
 #ifdef __cplusplus
 }

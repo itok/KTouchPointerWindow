@@ -11,14 +11,28 @@
 #import <QuartzCore/QuartzCore.h>
 
 // Settings for touch pointer
-#define POINTER_FADEOUT_TIME (0.5)		// second
-#define POINTER_RED (1)					// 0-1
-#define POINTER_GREEN (0)
-#define POINTER_BLUE (0)
-#define POINTER_ALPHA (0.6f)			// 0-1
-#define POINTER_RADIUS (15)
+#define KTOUCH_POINTER_FADEOUT_TIME (0.5)		// second
+#define KTOUCH_POINTER_RED (1)					// 0-1
+#define KTOUCH_POINTER_GREEN (0)
+#define KTOUCH_POINTER_BLUE (0)
+#define KTOUCH_POINTER_ALPHA (0.6f)			// 0-1
+#define KTOUCH_POINTER_RADIUS (15)
+
+static UIColor* s_color = nil;
+static CGFloat s_radius = 0;
+static NSTimeInterval s_fadeout = 0;
+
+static CGFloat s_red = 0;
+static CGFloat s_blue = 0;
+static CGFloat s_green = 0;
+static CGFloat s_alpha = 0;
 
 void KTouchPointerWindowInstall() 
+{
+	KTouchPointerWindowInstallWithOptions([UIColor colorWithRed:KTOUCH_POINTER_RED green:KTOUCH_POINTER_GREEN blue:KTOUCH_POINTER_BLUE alpha:KTOUCH_POINTER_ALPHA], KTOUCH_POINTER_RADIUS, KTOUCH_POINTER_FADEOUT_TIME);
+}
+
+void KTouchPointerWindowInstallWithOptions(UIColor* color, CGFloat radius, NSTimeInterval fadeout)
 {
 	static BOOL installed = NO;
 	if (!installed) {
@@ -29,6 +43,18 @@ void KTouchPointerWindowInstall()
 		Method orig = class_getInstanceMethod(_class, sel_registerName("sendEvent:"));
 		Method my = class_getInstanceMethod(_class, sel_registerName("k_sendEvent:"));
 		method_exchangeImplementations(orig, my);
+	
+		s_color = color;
+		s_radius = radius;
+		s_fadeout = fadeout;
+		
+		if (!s_color) {
+			s_color = [UIColor colorWithRed:KTOUCH_POINTER_RED green:KTOUCH_POINTER_GREEN blue:KTOUCH_POINTER_BLUE alpha:KTOUCH_POINTER_ALPHA];
+		}
+		[s_color getRed:&s_red green:&s_green blue:&s_blue alpha:&s_alpha];
+		if (s_radius == 0) {
+			s_radius = KTOUCH_POINTER_RADIUS;
+		}
 	}
 }
 
@@ -135,8 +161,8 @@ static char s_key;
 	for (UITouch* touch in self.touches) {
 		CGRect touchRect = CGRectZero;
 		touchRect.origin = [touch locationInView:self];
-		UIBezierPath* bp = [UIBezierPath bezierPathWithOvalInRect:CGRectInset(touchRect, -POINTER_RADIUS,-POINTER_RADIUS)];
-		[[UIColor colorWithRed:POINTER_RED green:POINTER_GREEN blue:POINTER_BLUE alpha:POINTER_ALPHA] set];
+		UIBezierPath* bp = [UIBezierPath bezierPathWithOvalInRect:CGRectInset(touchRect, -s_radius, -s_radius)];
+		[s_color set];
 		[bp fill];
 	}
 }
@@ -155,7 +181,7 @@ static char s_key;
 
 -(void) touchesCancelled:(NSSet *)_touches withEvent:(UIEvent *)event
 {
-	if (POINTER_FADEOUT_TIME > 0) {
+	if (s_fadeout > 0) {
 		for (UITouch *touch in _touches) {
 			[self drawFadeoutTouchPointer:[touch locationInView:self]];
 		}
@@ -167,7 +193,7 @@ static char s_key;
 
 -(void) touchesEnded:(NSSet *)_touches withEvent:(UIEvent *)event
 {
-	if (POINTER_FADEOUT_TIME > 0) {
+	if (s_fadeout > 0) {
 		for (UITouch *touch in _touches) {
 			[self drawFadeoutTouchPointer:[touch locationInView:self]];
 		}
@@ -181,8 +207,8 @@ static char s_key;
 - (void)drawFadeoutTouchPointer:(CGPoint)point
 {
 	_TouchLayer *tlayer = [_TouchLayer layer];
-	tlayer.frame = CGRectMake(point.x-POINTER_RADIUS,point.y-POINTER_RADIUS,POINTER_RADIUS*2,POINTER_RADIUS*2);
-	tlayer.opacity = POINTER_ALPHA;
+	tlayer.frame = CGRectMake(point.x - s_radius, point.y - s_radius, s_radius * 2, s_radius * 2);
+	tlayer.opacity = s_alpha;
 	[self.layer addSublayer:tlayer];
 	[tlayer setNeedsDisplay];
 	
@@ -192,7 +218,7 @@ static char s_key;
 		[tlayer removeFromSuperlayer];
 	}];
 	
-	[CATransaction setValue:[NSNumber numberWithFloat:POINTER_FADEOUT_TIME] forKey:kCATransactionAnimationDuration];
+	[CATransaction setValue:[NSNumber numberWithFloat:s_fadeout] forKey:kCATransactionAnimationDuration];
 	tlayer.opacity = 0.0f;
 	
 	[CATransaction commit];
@@ -204,7 +230,7 @@ static char s_key;
 
 - (void)drawInContext:(CGContextRef)ctx
 {
-	CGContextSetRGBFillColor(ctx,POINTER_RED,POINTER_GREEN,POINTER_BLUE,1);
+	CGContextSetRGBFillColor(ctx, s_red, s_green, s_blue, 1);
 	CGContextFillEllipseInRect(ctx,CGRectMake(0,0,self.frame.size.width,self.frame.size.height));
 }
 
