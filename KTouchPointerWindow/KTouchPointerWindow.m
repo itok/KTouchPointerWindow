@@ -44,12 +44,12 @@ void KTouchPointerWindowInstallWithOptions(UIColor* color, CGFloat radius, NSTim
 		Method my = class_getInstanceMethod(_class, sel_registerName("k_sendEvent:"));
 		method_exchangeImplementations(orig, my);
 	
-		s_color = color;
+		s_color = [color copy];
 		s_radius = radius;
 		s_fadeout = fadeout;
 		
 		if (!s_color) {
-			s_color = [UIColor colorWithRed:KTOUCH_POINTER_RED green:KTOUCH_POINTER_GREEN blue:KTOUCH_POINTER_BLUE alpha:KTOUCH_POINTER_ALPHA];
+			s_color = [[UIColor colorWithRed:KTOUCH_POINTER_RED green:KTOUCH_POINTER_GREEN blue:KTOUCH_POINTER_BLUE alpha:KTOUCH_POINTER_ALPHA] copy];
 		}
 		[s_color getRed:&s_red green:&s_green blue:&s_blue alpha:&s_alpha];
 		if (s_radius == 0) {
