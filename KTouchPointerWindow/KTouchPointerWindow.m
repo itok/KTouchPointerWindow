@@ -41,7 +41,7 @@ void KTouchPointerWindowInstallWithOptions(UIColor* color, CGFloat radius, NSTim
 		Class _class = [UIWindow class];
 		
 		Method orig = class_getInstanceMethod(_class, sel_registerName("sendEvent:"));
-		Method my = class_getInstanceMethod(_class, sel_registerName("k_sendEvent:"));
+		Method my = class_getInstanceMethod(_class, sel_registerName("itk_sendEvent:"));
 		method_exchangeImplementations(orig, my);
 	
 		s_color = [color copy];
@@ -60,12 +60,12 @@ void KTouchPointerWindowInstallWithOptions(UIColor* color, CGFloat radius, NSTim
 
 static char s_key;
 
-@interface _TouchLayer : CALayer
+@interface __ITKTouchLayer : CALayer
 
 @end
 
 
-@interface __KTouchPointerView : UIView
+@interface __ITKTouchPointerView : UIView
 
 @property (nonatomic, retain) NSSet* touches;
 
@@ -73,33 +73,33 @@ static char s_key;
 
 @interface UIWindow (KTouchPointerWindow)
 
-@property (nonatomic, retain) __KTouchPointerView* k_touchPointerView;
+@property (nonatomic, retain) __ITKTouchPointerView* itk_touchPointerView;
 
 @end
 
 @implementation UIWindow (KTouchPointerWindow)
 
-- (__KTouchPointerView*) k_touchPointerView
+- (__ITKTouchPointerView*) itk_touchPointerView
 {
 	return objc_getAssociatedObject(self, &s_key);
 }
 
--(void) setK_touchPointerView:(__KTouchPointerView *)value
+-(void) setItk_touchPointerView:(__ITKTouchPointerView *)value
 {
 	objc_setAssociatedObject(self, &s_key, value, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
--(void) k_sendEvent:(UIEvent *)event
+-(void) itk_sendEvent:(UIEvent *)event
 {
-	if (!self.k_touchPointerView) {
-		self.k_touchPointerView = [[__KTouchPointerView alloc] initWithFrame:self.bounds];
-		self.k_touchPointerView.backgroundColor = [UIColor clearColor];
-		self.k_touchPointerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-		self.k_touchPointerView.userInteractionEnabled = NO;
-		[self addSubview:self.k_touchPointerView];
+	if (!self.itk_touchPointerView) {
+		self.itk_touchPointerView = [[__ITKTouchPointerView alloc] initWithFrame:self.bounds];
+		self.itk_touchPointerView.backgroundColor = [UIColor clearColor];
+		self.itk_touchPointerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+		self.itk_touchPointerView.userInteractionEnabled = NO;
+		[self addSubview:self.itk_touchPointerView];
 	}
 	
-	[self bringSubviewToFront:self.k_touchPointerView];
+	[self bringSubviewToFront:self.itk_touchPointerView];
 	
 	NSMutableSet* began = nil;
 	NSMutableSet* moved = nil;
@@ -136,23 +136,23 @@ static char s_key;
 		}
 	}
 	if (began) {
-		[self.k_touchPointerView touchesBegan:began withEvent:event];
+		[self.itk_touchPointerView touchesBegan:began withEvent:event];
 	}
 	if (moved) {
-		[self.k_touchPointerView touchesMoved:moved withEvent:event];
+		[self.itk_touchPointerView touchesMoved:moved withEvent:event];
 	}
 	if (ended) {
-		[self.k_touchPointerView touchesEnded:ended withEvent:event];
+		[self.itk_touchPointerView touchesEnded:ended withEvent:event];
 	}
 	if (cancelled) {
-		[self.k_touchPointerView touchesCancelled:cancelled withEvent:event];
+		[self.itk_touchPointerView touchesCancelled:cancelled withEvent:event];
 	}
-	[self k_sendEvent:event];
+	[self itk_sendEvent:event];
 }
 
 @end
 
-@implementation __KTouchPointerView
+@implementation __ITKTouchPointerView
 
 @synthesize touches;
 
@@ -206,7 +206,7 @@ static char s_key;
 // draw the touch pointer to fade out
 - (void)drawFadeoutTouchPointer:(CGPoint)point
 {
-	_TouchLayer *tlayer = [_TouchLayer layer];
+	__ITKTouchLayer *tlayer = [__ITKTouchLayer layer];
 	tlayer.frame = CGRectMake(point.x - s_radius, point.y - s_radius, s_radius * 2, s_radius * 2);
 	tlayer.opacity = s_alpha;
 	[self.layer addSublayer:tlayer];
@@ -226,7 +226,7 @@ static char s_key;
 
 @end
 
-@implementation _TouchLayer
+@implementation __ITKTouchLayer
 
 - (void)drawInContext:(CGContextRef)ctx
 {
