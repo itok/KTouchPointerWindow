@@ -21,10 +21,6 @@
 static UIColor* s_color = nil;
 static CGFloat s_radius = 0;
 static NSTimeInterval s_fadeout = 0;
-
-static CGFloat s_red = 0;
-static CGFloat s_blue = 0;
-static CGFloat s_green = 0;
 static CGFloat s_alpha = 0;
 
 void KTouchPointerWindowInstall() 
@@ -51,7 +47,7 @@ void KTouchPointerWindowInstallWithOptions(UIColor* color, CGFloat radius, NSTim
 		if (!s_color) {
 			s_color = [[UIColor colorWithRed:KTOUCH_POINTER_RED green:KTOUCH_POINTER_GREEN blue:KTOUCH_POINTER_BLUE alpha:KTOUCH_POINTER_ALPHA] copy];
 		}
-		[s_color getRed:&s_red green:&s_green blue:&s_blue alpha:&s_alpha];
+		[s_color getRed:nil green:nil blue:nil alpha:&s_alpha];
 		if (s_radius == 0) {
 			s_radius = KTOUCH_POINTER_RADIUS;
 		}
@@ -59,11 +55,6 @@ void KTouchPointerWindowInstallWithOptions(UIColor* color, CGFloat radius, NSTim
 }
 
 static char s_key;
-
-@interface __ITKTouchLayer : CALayer
-
-@end
-
 
 @interface __ITKTouchPointerView : UIView
 
@@ -206,32 +197,34 @@ static char s_key;
 // draw the touch pointer to fade out
 - (void)drawFadeoutTouchPointer:(CGPoint)point
 {
-	__ITKTouchLayer *tlayer = [__ITKTouchLayer layer];
-	tlayer.frame = CGRectMake(point.x - s_radius, point.y - s_radius, s_radius * 2, s_radius * 2);
-	tlayer.opacity = s_alpha;
-	[self.layer addSublayer:tlayer];
-	[tlayer setNeedsDisplay];
+    CAShapeLayer* layer = [CAShapeLayer layer];
+	layer.frame = CGRectMake(point.x - s_radius, point.y - s_radius, s_radius * 2, s_radius * 2);
+	layer.opacity = s_alpha;
+    layer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, s_radius * 2, s_radius * 2)].CGPath;
+    layer.fillColor = [s_color CGColor];
+	[self.layer addSublayer:layer];
 	
 	[CATransaction flush];
 	[CATransaction begin];
 	[CATransaction setCompletionBlock:^{
-		[tlayer removeFromSuperlayer];
+		[layer removeFromSuperlayer];
 	}];
 	
 	[CATransaction setValue:[NSNumber numberWithFloat:s_fadeout] forKey:kCATransactionAnimationDuration];
-	tlayer.opacity = 0.0f;
+	layer.opacity = 0.0f;
 	
 	[CATransaction commit];
 }
 
-@end
-
-@implementation __ITKTouchLayer
-
-- (void)drawInContext:(CGContextRef)ctx
+-(void) didAddSubview:(UIView *)subview
 {
-	CGContextSetRGBFillColor(ctx, s_red, s_green, s_blue, 1);
-	CGContextFillEllipseInRect(ctx,CGRectMake(0,0,self.frame.size.width,self.frame.size.height));
+	self.userInteractionEnabled = ([self.subviews count] > 0);
 }
+
+-(void) willRemoveSubview:(UIView *)subview
+{
+	self.userInteractionEnabled = ([self.subviews count] > 1);
+}
+
 
 @end
