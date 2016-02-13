@@ -160,13 +160,13 @@ static char s_key;
 
 -(void) touchesBegan:(NSSet *)_touches withEvent:(UIEvent *)event
 {
-	self.touches = _touches;
+	self.touches = event.allTouches;
 	[self setNeedsDisplay];
 }
 
 -(void) touchesMoved:(NSSet *)_touches withEvent:(UIEvent *)event
 {
-	self.touches = _touches;
+	self.touches = event.allTouches;
 	[self setNeedsDisplay];	
 }
 
@@ -178,7 +178,9 @@ static char s_key;
 		}
 	}
 
-	self.touches = nil;
+	if (event.allTouches.count == 0) {
+		self.touches = nil;
+	}
 	[self setNeedsDisplay];
 }
 
@@ -190,7 +192,9 @@ static char s_key;
 		}
 	}
 	
-	self.touches = nil;
+	if (event.allTouches.count == 0) {
+		self.touches = nil;
+	}
 	[self setNeedsDisplay];
 }
 
